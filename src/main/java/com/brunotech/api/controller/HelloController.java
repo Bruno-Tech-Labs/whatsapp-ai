@@ -1,4 +1,4 @@
-package com.study.api.controller;
+package com.brunotech.api.controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class HelloController {
     public Map<String, String> hello() {
 
         Map<String, String> response = new HashMap<>();
-        response.put("mensagem", "Olá! API funcionando com sucesso.");
+        response.put("mensagem", "Olá! API funcionando com no projeto whatsapp.");
 
         return response;
     }
