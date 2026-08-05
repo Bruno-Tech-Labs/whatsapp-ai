@@ -62,6 +62,12 @@ public class WhatsappSignatureValidator {
             return false;
         }
 
+        log.info("[Signature Debug] rawHeader='{}' normalizedHeader='{}' hex='{}' appSecretLength={}",
+                signatureHeader,
+                header,
+                hex,
+                appSecret == null ? -1 : appSecret.length());
+
         byte[] receivedSignature;
         try {
             receivedSignature = HexFormat.of().parseHex(hex);
@@ -71,9 +77,14 @@ public class WhatsappSignatureValidator {
         }
 
         byte[] expectedSignature = calculateHmac(rawPayload);
-
         String expectedHex = HexFormat.of().formatHex(expectedSignature);
-        log.info("[Signature Debug] receivedSignature={} expectedSignature={}", hex, expectedHex);
+
+        log.info("[Signature Debug] receivedSignature={} expectedSignature={} expectedLength={} payloadLength={} appSecretTrimmedLength={}",
+                hex,
+                expectedHex,
+                expectedSignature.length,
+                rawPayload.length,
+                appSecret == null ? -1 : appSecret.trim().length());
 
         return MessageDigest.isEqual(receivedSignature, expectedSignature);
     }

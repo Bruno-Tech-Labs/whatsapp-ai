@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HexFormat;
 
 @Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
@@ -25,14 +26,16 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             CachedBodyHttpServletRequest cachedRequest = new CachedBodyHttpServletRequest(request);
             byte[] body = cachedRequest.getCachedBody();
             String payload = new String(body, StandardCharsets.UTF_8);
+            String bodyHex = HexFormat.of().formatHex(body);
 
-            log.info("[Webhook Debug] request-uri={} method={} signature={} content-type={} content-length={} remote-addr={}",
+            log.info("[Webhook Debug] request-uri={} method={} signature={} content-type={} content-length={} remote-addr={} bodyHex={}",
                     request.getRequestURI(),
                     request.getMethod(),
                     request.getHeader("X-Hub-Signature-256"),
                     request.getContentType(),
                     request.getHeader("Content-Length"),
-                    request.getRemoteAddr());
+                    request.getRemoteAddr(),
+                    bodyHex);
             log.info("[Webhook Debug] raw-body={}", payload);
 
             filterChain.doFilter(cachedRequest, response);
