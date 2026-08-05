@@ -75,6 +75,15 @@ public class WhatsappSignatureValidator {
     private String calculateHmac(String payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+
+            //start of the debug block            
+            System.out.println("===== APP SECRET DEBUG =====");
+            System.out.println("App Secret length: " + appSecret.length());
+            System.out.println("App Secret começa com: " +  appSecret.substring(0, Math.min(4, appSecret.length())));
+            System.out.println("App Secret termina com: " + appSecret.substring(Math.max(0, appSecret.length() - 4)));
+            System.out.println("============================");
+            //end of the debug block
+
             mac.init(new SecretKeySpec(
                     appSecret.getBytes(StandardCharsets.UTF_8), 
                     HMAC_ALGORITHM));
