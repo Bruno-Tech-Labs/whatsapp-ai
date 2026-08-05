@@ -39,6 +39,8 @@ public class WhatsappSignatureValidator {
      * @return true se a assinatura for valida
      */
     public boolean isValid(String rawPayload, String signatureHeader) {
+        
+        System.out.println("HEADER COMPLETO: [" + signatureHeader + "]");
         if (signatureHeader == null || !signatureHeader.startsWith(SIGNATURE_PREFIX)) {
             System.out.println("ASSINATURA: HEADER AUSENTE OU INVALIDO");
             return false;
