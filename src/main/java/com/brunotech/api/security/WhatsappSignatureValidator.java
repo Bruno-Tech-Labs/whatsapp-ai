@@ -38,33 +38,14 @@ public class WhatsappSignatureValidator {
      * @param signatureHeader valor do header X-Hub-Signature-256, pode ser null
      * @return true se a assinatura for valida
      */
-    public boolean isValid(String rawPayload, String signatureHeader) {
+    public boolean isValid(byte[] rawPayload, String signatureHeader) {
 
         if (signatureHeader == null || !signatureHeader.startsWith(SIGNATURE_PREFIX)) {
-            System.out.println("ASSINATURA: HEADER AUSENTE OU INVALIDO");
             return false;
         }
 
-
         String receivedSignature = signatureHeader.substring(SIGNATURE_PREFIX.length());
         String expectedSignature = calculateHmac(rawPayload);
-
-        //start of the debug block
-        System.out.println("===== DEBUG WHATSAPP =====");
-        System.out.println("PAYLOAD RECEBIDO:");
-        System.out.println(rawPayload);
-        System.out.println("PAYLOAD BYTES:");
-        System.out.println(
-            HexFormat.of().formatHex(
-                rawPayload.getBytes(StandardCharsets.UTF_8)
-            )
-        );        
-        System.out.println("==========================");        
-        System.out.println("Payload length: " + rawPayload.length());
-        System.out.println("Signature recebida: " + receivedSignature);
-        System.out.println("Signature calculada: " + expectedSignature);
-        System.out.println("==========================");        
-        //end of the debug block
 
         return MessageDigest.isEqual(
                 receivedSignature.getBytes(StandardCharsets.UTF_8),
@@ -72,26 +53,15 @@ public class WhatsappSignatureValidator {
         );
     }
 
-    private String calculateHmac(String payload) {
+    private String calculateHmac(byte[] payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-
-            //start of the debug block            
-            System.out.println("===== APP SECRET DEBUG =====");
-            System.out.println("App Secret length: " + appSecret.length());
-            System.out.println("App Secret começa com: " +  appSecret.substring(0, Math.min(4, appSecret.length())));
-            System.out.println("App Secret termina com: " + appSecret.substring(Math.max(0, appSecret.length() - 4)));
-            System.out.println("============================");
-            //end of the debug block
-
             mac.init(new SecretKeySpec(
                     appSecret.getBytes(StandardCharsets.UTF_8), 
                     HMAC_ALGORITHM));
-            byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+            byte[] hash = mac.doFinal(payload);
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            // HmacSHA256 sempre existe na JVM e a chave sempre e valida aqui;
-            // se isso disparar, e erro de configuracao grave, nao de payload.
             throw new IllegalStateException("Erro ao calcular a assinatura do webhook", e);
         }
     }

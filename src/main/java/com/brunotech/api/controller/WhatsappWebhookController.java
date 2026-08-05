@@ -2,6 +2,9 @@ package com.brunotech.api.controller;
 
 import com.brunotech.api.security.WhatsappSignatureValidator;
 import com.brunotech.api.service.WhatsappEventProcessor;
+
+import java.nio.charset.StandardCharsets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +68,7 @@ public class WhatsappWebhookController {
 
     @PostMapping
     public ResponseEntity<Void> receiveEvent(
-            @RequestBody String rawPayload,
+            @RequestBody byte[] rawPayload,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature
     ) {       
         if (!signatureValidator.isValid(rawPayload, signature)) {
@@ -73,9 +76,8 @@ public class WhatsappWebhookController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        // Responde 200 imediatamente. O processamento de verdade acontece
-        // em segundo plano (metodo @Async), para nao fazer a Meta esperar.
-        eventProcessor.processEvent(rawPayload);
+        String payload = new String(rawPayload,StandardCharsets.UTF_8);
+        eventProcessor.processEvent(payload);
 
         return ResponseEntity.ok().build();
     }
