@@ -39,19 +39,27 @@ public class WhatsappSignatureValidator {
      * @return true se a assinatura for valida
      */
     public boolean isValid(String rawPayload, String signatureHeader) {
-        
-        System.out.println("HEADER COMPLETO: [" + signatureHeader + "]");
+
         if (signatureHeader == null || !signatureHeader.startsWith(SIGNATURE_PREFIX)) {
             System.out.println("ASSINATURA: HEADER AUSENTE OU INVALIDO");
             return false;
         }
+
 
         String receivedSignature = signatureHeader.substring(SIGNATURE_PREFIX.length());
         String expectedSignature = calculateHmac(rawPayload);
 
         //start of the debug block
         System.out.println("===== DEBUG WHATSAPP =====");
-        System.out.println("App Secret configurado: " + appSecret);
+        System.out.println("PAYLOAD RECEBIDO:");
+        System.out.println(rawPayload);
+        System.out.println("PAYLOAD BYTES:");
+        System.out.println(
+            HexFormat.of().formatHex(
+                rawPayload.getBytes(StandardCharsets.UTF_8)
+            )
+        );        
+        System.out.println("==========================");        
         System.out.println("Payload length: " + rawPayload.length());
         System.out.println("Signature recebida: " + receivedSignature);
         System.out.println("Signature calculada: " + expectedSignature);
@@ -67,7 +75,9 @@ public class WhatsappSignatureValidator {
     private String calculateHmac(String payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            mac.init(new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
+            mac.init(new SecretKeySpec(
+                    appSecret.getBytes(StandardCharsets.UTF_8), 
+                    HMAC_ALGORITHM));
             byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hash);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
