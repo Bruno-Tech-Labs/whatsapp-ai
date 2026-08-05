@@ -27,6 +27,7 @@ import java.util.Locale;
 @Component
 public class WhatsappSignatureValidator {
 
+    private static final Logger log = LoggerFactory.getLogger(WhatsappSignatureValidator.class);
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String SIGNATURE_PREFIX = "sha256=";
 
