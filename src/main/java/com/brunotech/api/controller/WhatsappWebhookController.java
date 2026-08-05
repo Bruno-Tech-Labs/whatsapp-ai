@@ -68,6 +68,10 @@ public class WhatsappWebhookController {
             @RequestBody String rawPayload,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature
     ) {
+        log.info(
+            "X-Hub-Signature-256 recebido: {}",
+            signature != null ? "SIM" : "NAO"
+        );        
         if (!signatureValidator.isValid(rawPayload, signature)) {
             log.warn("Requisicao recebida no webhook com assinatura invalida ou ausente. Descartada.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
