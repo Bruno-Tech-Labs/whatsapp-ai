@@ -38,29 +38,39 @@ public class WhatsappSignatureValidator {
      * @param signatureHeader valor do header X-Hub-Signature-256, pode ser null
      * @return true se a assinatura for valida
      */
-    public boolean isValid(byte[] rawPayload, String signatureHeader) {
 
-        if (signatureHeader == null || !signatureHeader.startsWith(SIGNATURE_PREFIX)) {
+    public boolean isValid(byte[] rawPayload, String signatureHeader) {       
+
+        if (signatureHeader == null) {
             return false;
         }
 
-        String receivedSignature = signatureHeader.substring(SIGNATURE_PREFIX.length());
-        String expectedSignature = calculateHmac(rawPayload);
+        String header = signatureHeader.trim();
+        if (!header.startsWith(SIGNATURE_PREFIX)) {
+            return false;
+        }
 
-        return MessageDigest.isEqual(
-                receivedSignature.getBytes(StandardCharsets.UTF_8),
-                expectedSignature.getBytes(StandardCharsets.UTF_8)
-        );
+        String hex = header.substring(SIGNATURE_PREFIX.length()).trim();
+        if (hex.length() != 64) {
+            return false;
+        }
+
+        byte[] receivedSignature;
+        try {
+            receivedSignature = HexFormat.of().parseHex(hex);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        byte[] expectedSignature = calculateHmac(rawPayload);
+        return MessageDigest.isEqual(receivedSignature, expectedSignature);
     }
 
-    private String calculateHmac(byte[] payload) {
+    private byte[] calculateHmac(byte[] payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            mac.init(new SecretKeySpec(
-                    appSecret.getBytes(StandardCharsets.UTF_8), 
-                    HMAC_ALGORITHM));
-            byte[] hash = mac.doFinal(payload);
-            return HexFormat.of().formatHex(hash);
+            mac.init(new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
+            return mac.doFinal(payload);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IllegalStateException("Erro ao calcular a assinatura do webhook", e);
         }
