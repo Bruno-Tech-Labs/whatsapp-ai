@@ -1,7 +1,5 @@
 package com.brunotech.api.security;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +25,6 @@ import java.util.Locale;
 @Component
 public class WhatsappSignatureValidator {
 
-    private static final Logger log = LoggerFactory.getLogger(WhatsappSignatureValidator.class);
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String SIGNATURE_PREFIX = "sha256=";
 
@@ -46,46 +43,27 @@ public class WhatsappSignatureValidator {
     public boolean isValid(byte[] rawPayload, String signatureHeader) {
 
         if (signatureHeader == null) {
-            log.warn("[Signature Debug] header ausente");
             return false;
         }
 
         String header = signatureHeader.trim();
         if (!header.toLowerCase(Locale.ROOT).startsWith(SIGNATURE_PREFIX)) {
-            log.warn("[Signature Debug] prefixo inválido: {}", header);
             return false;
         }
 
         String hex = header.substring(SIGNATURE_PREFIX.length()).trim();
         if (hex.length() != 64) {
-            log.warn("[Signature Debug] comprimento inválido do hash: {}", hex.length());
             return false;
         }
-
-        log.info("[Signature Debug] rawHeader='{}' normalizedHeader='{}' hex='{}' appSecretLength={}",
-                signatureHeader,
-                header,
-                hex,
-                appSecret == null ? -1 : appSecret.length());
 
         byte[] receivedSignature;
         try {
             receivedSignature = HexFormat.of().parseHex(hex);
         } catch (IllegalArgumentException e) {
-            log.warn("[Signature Debug] hex inválido: {}", hex);
             return false;
         }
 
         byte[] expectedSignature = calculateHmac(rawPayload);
-        String expectedHex = HexFormat.of().formatHex(expectedSignature);
-
-        log.info("[Signature Debug] receivedSignature={} expectedSignature={} expectedLength={} payloadLength={} appSecretTrimmedLength={}",
-                hex,
-                expectedHex,
-                expectedSignature.length,
-                rawPayload.length,
-                appSecret == null ? -1 : appSecret.trim().length());
-
         return MessageDigest.isEqual(receivedSignature, expectedSignature);
     }
 
