@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.brunotech.api.exception.WhatsappApiException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +29,12 @@ public class WhatsappMessageService {
             @Value("${whatsapp.cloud.phone-number-id}") String phoneNumberId
     ) {
         this.accessToken = accessToken != null ? accessToken.trim() : "";
+        if (this.accessToken.isBlank()) {
+            throw new IllegalStateException("Missing configuration: whatsapp.cloud.access-token");
+        }
+        if (phoneNumberId == null || phoneNumberId.isBlank()) {
+            throw new IllegalStateException("Missing configuration: whatsapp.cloud.phone-number-id");
+        }
         this.apiUrl = "https://graph.facebook.com/v16.0/" + phoneNumberId + "/messages";
         this.restTemplate = new RestTemplate();
     }
@@ -57,6 +65,7 @@ public class WhatsappMessageService {
             log.info("Mensagem enviada para {} com sucesso.", to);
         } catch (RestClientException e) {
             log.error("Falha ao enviar mensagem para {}: {}", to, e.getMessage(), e);
+            throw new WhatsappApiException("Falha ao enviar mensagem para " + to, e);
         }
     }
 }
