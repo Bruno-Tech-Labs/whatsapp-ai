@@ -40,7 +40,7 @@ public class WhatsappSignatureValidator {
      * @return true se a assinatura for valida
      */
 
-    public boolean isValid(byte[] rawPayload, String signatureHeader) {
+    public boolean isValid(String rawPayload, String signatureHeader) {
 
         if (signatureHeader == null) {
             return false;
@@ -67,11 +67,11 @@ public class WhatsappSignatureValidator {
         return MessageDigest.isEqual(receivedSignature, expectedSignature);
     }
 
-    private byte[] calculateHmac(byte[] payload) {
+    private byte[] calculateHmac(String payload) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
             mac.init(new SecretKeySpec(appSecret.trim().getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
-            return mac.doFinal(payload);
+            return mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new IllegalStateException("Erro ao calcular a assinatura do webhook", e);
         }
