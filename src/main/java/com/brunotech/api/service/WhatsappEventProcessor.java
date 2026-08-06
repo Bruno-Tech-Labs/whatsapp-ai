@@ -1,6 +1,7 @@
 package com.brunotech.api.service;
 
 import com.brunotech.api.dto.WhatsappWebhookPayload;
+import com.brunotech.api.service.handler.MessageHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -8,9 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
- * Processa o conteudo de um evento de webhook do WhatsApp, DEPOIS que o
- * controller ja respondeu 200 para a Meta.
+ * Orquestra o processamento de eventos de webhook do WhatsApp.
+ *
+ * Ele apenas faz o parse do payload e delega o trabalho para handlers
+ * especializados, permitindo evoluir para novos tipos de mensagem.
  */
 @Service
 public class WhatsappEventProcessor {
@@ -18,16 +23,16 @@ public class WhatsappEventProcessor {
     private static final Logger log = LoggerFactory.getLogger(WhatsappEventProcessor.class);
 
     private final ObjectMapper objectMapper;
-    private final WhatsappMessageService whatsappMessageService;
+    private final List<MessageHandler> handlers;
 
-    public WhatsappEventProcessor(ObjectMapper objectMapper, WhatsappMessageService whatsappMessageService) {
+    public WhatsappEventProcessor(ObjectMapper objectMapper, List<MessageHandler> handlers) {
         this.objectMapper = objectMapper;
-        this.whatsappMessageService = whatsappMessageService;
+        this.handlers = handlers;
     }
 
     @Async
     public void processEvent(String rawPayload) {
-        log.info("Evento recebido do webhook do WhatsApp: {}", rawPayload);
+        log.info("Evento recebido do webhook do WhatsApp");
 
         WhatsappWebhookPayload payload;
         try {
@@ -38,16 +43,19 @@ public class WhatsappEventProcessor {
         }
 
         WhatsappWebhookPayload.Message message = payload.getFirstMessage();
-        if (message == null || message.getFrom() == null || message.getText() == null || message.getText().getBody() == null) {
-            log.info("Nenhuma mensagem de texto valida encontrada no payload do webhook.");
+        if (message == null) {
+            log.info("Nenhuma mensagem valida encontrada no payload do webhook.");
             return;
         }
 
-        String from = message.getFrom();
-        String body = message.getText().getBody();
-        log.info("Mensagem recebida de {}: {}", from, body);
+        //Verifica o tipo de mensagem e delega para o handler apropriado
+        for (MessageHandler handler : handlers) {
+            if (handler.supports(message)) {
+                handler.handle(message);
+                return;
+            }
+        }
 
-        String response = "Olá! Recebi sua mensagem.";
-        whatsappMessageService.sendMessage(from, response);
+        log.info("Nenhum handler suportou a mensagem recebida.");
     }
 }
