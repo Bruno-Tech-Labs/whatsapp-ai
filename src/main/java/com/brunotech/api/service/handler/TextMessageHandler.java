@@ -5,6 +5,7 @@ import com.brunotech.api.service.WhatsappMessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import com.brunotech.api.service.conversation.ConversationService;
 
 @Component
 public class TextMessageHandler implements MessageHandler {
@@ -33,7 +34,7 @@ public class TextMessageHandler implements MessageHandler {
 
         log.info("Mensagem recebida de {}: {}", from, body);
 
-        String response = "Olá! Recebi sua mensagem.";
+        String response = ConversationService.generateResponse(body);
         whatsappMessageService.sendMessage(from, response);
     }
 }
