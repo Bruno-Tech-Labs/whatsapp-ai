@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 public class TextMessageHandler implements MessageHandler {
 
     private static final Logger log = LoggerFactory.getLogger(TextMessageHandler.class);
-
     private final WhatsappMessageService whatsappMessageService;
 
     public TextMessageHandler(WhatsappMessageService whatsappMessageService) {
         this.whatsappMessageService = whatsappMessageService;
     }
 
+    // Verifica se a mensagem é do tipo texto
     @Override
     public boolean supports(WhatsappWebhookPayload.Message message) {
         return message != null
@@ -25,6 +25,7 @@ public class TextMessageHandler implements MessageHandler {
                 && message.getText().getBody() != null;
     }
 
+    //Extrai o corpo da mensagem e envia uma resposta de volta para o remetente
     @Override
     public void handle(WhatsappWebhookPayload.Message message) {
         String from = message.getFrom();

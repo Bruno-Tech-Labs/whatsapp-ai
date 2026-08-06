@@ -34,6 +34,7 @@ public class WhatsappEventProcessor {
     public void processEvent(String rawPayload) {
         log.info("Evento recebido do webhook do WhatsApp");
 
+        //Extrai o payload do webhook e faz o parse para o objeto WhatsappWebhookPayload
         WhatsappWebhookPayload payload;
         try {
             payload = objectMapper.readValue(rawPayload, WhatsappWebhookPayload.class);
@@ -42,6 +43,7 @@ public class WhatsappEventProcessor {
             return;
         }
 
+        //Valida se o payload contém uma mensagem válida
         WhatsappWebhookPayload.Message message = payload.getFirstMessage();
         if (message == null) {
             log.info("Nenhuma mensagem valida encontrada no payload do webhook.");
