@@ -24,6 +24,16 @@ public class Conversation {
 
     protected Conversation() { }
 
+    protected Conversation(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static Conversation create(String phoneNumber) {
+        return new Conversation(phoneNumber);
+    }
+
     public UUID getId() {
         return id;
     }

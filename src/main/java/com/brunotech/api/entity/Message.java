@@ -40,6 +40,28 @@ public class Message {
     protected Message() {
     }
 
+    protected Message(Conversation conversation,
+                      String whatsappMessageId,
+                      MessageDirection direction,
+                      MessageType messageType,
+                      String content) {
+        this.conversation = conversation;
+        this.whatsappMessageId = whatsappMessageId;
+        this.direction = direction;
+        this.messageType = messageType;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static Message createInbound(
+            Conversation conversation,
+            String whatsappMessageId,
+            MessageType messageType,
+            String content
+    ) {
+        return new Message(conversation, whatsappMessageId, MessageDirection.INBOUND, messageType, content);
+    }
+
     public UUID getId() {
         return id;
     }
